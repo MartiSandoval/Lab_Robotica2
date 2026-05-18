@@ -1,0 +1,65 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/solids/protos/SolidBox.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.39159891658491836 -0.08402951753676938 0.9162910720464627 3.5295870563500467
+  position 2.156908861069931 1.1364944188896837 2.095527175536775
+}
+TexturedBackground {
+}
+E-puck {
+  hidden position_0_0 1489.7032300415706
+  hidden position_0_1 1691.3704631795567
+  hidden linearVelocity_0 0.07413062465777336 -0.013763917880520582 1.858730919102438e-08
+  hidden angularVelocity_0 0.00045731487660816443 0.002463131587399755 -1.610956039719975e-08
+  hidden rotation_1 0 -1 0 5.694873067171004
+  hidden linearVelocity_1 0.07414290081040988 -0.013766416054520579 -2.7185511163646886e-10
+  hidden angularVelocity_1 0.6883102519030228 3.707146969272883 9.464792599925444e-08
+  hidden rotation_2 0 -1 0 5.089569758931612
+  hidden linearVelocity_2 0.07414297900414694 -0.013765992702701452 1.7505682915034459e-10
+  hidden angularVelocity_2 0.6883101787866855 3.707146982832084 -8.921733164827481e-08
+  translation -0.08513444929849527 0.9192424993880152 -6.394850588370415e-05
+  rotation 0.0005900265406740676 0.006409733197855566 -0.9999792833799176 0.18358440523537653
+  controller "controlador_lab2"
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 2 2
+}
+SolidBox {
+  translation 0 0 0.06
+  size 0.1 0.1 0.1
+}
+SolidBox {
+  translation 0 0 0.06
+  name "box(1)"
+  size 0.1 0.1 0.1
+}
+SolidBox {
+  translation 0.37 -0.43 0.06
+  name "box(2)"
+  size 0.1 0.1 0.1
+}
+SolidBox {
+  translation 0.37 0.43 0.06
+  name "box(4)"
+  size 0.1 0.1 0.1
+}
+SolidBox {
+  translation -0.34 -0.27 0.06
+  name "box(5)"
+  size 0.1 0.1 0.1
+}
+SolidBox {
+  translation -0.47 0.39 0.06
+  name "box(3)"
+  size 0.1 0.1 0.1
+}
