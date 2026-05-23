@@ -20,13 +20,9 @@ RectangleArena {
   wallHeight 0.2
 }
 E-puck {
-  hidden position_0_0 6196.765865968714
-  hidden position_0_1 6368.681595574708
-  hidden rotation_1 0 0.9999999999999999 0 1.5451530896417582
-  hidden rotation_2 0 -1 0 2.4683059053927887
-  translation -0.00271317 -1.43606 -0.00532
-  rotation -0.002036549824947492 -0.0001561119865813277 -0.9999979140447535 -1.5838053071795866
-  controller "my_controller"
+  translation 0 -0.56 0
+  rotation 0 0 1 1.5708
+  controller "controlador_lab2"
 }
 Solid {
   translation -0.16 -1.15 0.05
