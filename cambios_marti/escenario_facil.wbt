@@ -1,0 +1,134 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/gctronic/e-puck/protos/E-puck.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.543908737371025 0.5480036881140234 0.6354960607469454 2.002573465787213
+  position 0.05479941238519678 -0.5463513408460231 2.69799990031606
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  wallHeight 0.2
+}
+E-puck {
+  translation 0.0610772 -0.4 -0.00176818
+  rotation 0.0001490850383430764 -0.005046111297805824 0.999987257186021 1.5638496938995747
+  controller "controlador_lab2"
+}
+Solid {
+  translation 0.23 0.41 0.05
+  rotation 0 0 1 0.523599
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0.4
+        metalness 0
+      }
+      geometry Box {
+        size 0.2 0.2 0.1
+      }
+    }
+  ]
+  boundingObject Box {
+    size 0.2 0.2 0.1
+  }
+}
+Solid {
+  translation -0.26 -0.4 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0.4
+        metalness 0
+      }
+      geometry Box {
+        size 0.2 0.2 0.1
+      }
+    }
+  ]
+  name "solid(1)"
+  boundingObject Box {
+    size 0.2 0.2 0.1
+  }
+}
+Solid {
+  translation -0.28 0.27 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0.4
+        metalness 0
+      }
+      geometry Box {
+        size 0.3 0.1 0.1
+      }
+    }
+  ]
+  name "solid(2)"
+  boundingObject Box {
+    size 0.3 0.1 0.1
+  }
+}
+Solid {
+  translation 0.33 -0.12 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0.4
+        metalness 0
+      }
+      geometry Box {
+        size 0.1 0.4 0.1
+      }
+    }
+  ]
+  name "solid(3)"
+  boundingObject Box {
+    size 0.1 0.4 0.1
+  }
+}
+Solid {
+  translation -0.352219 -0.0529289 0.05
+  rotation 0 0 1 0.785398
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0.4
+        metalness 0
+      }
+      geometry Box {
+        size 0.3 0.2 0.1
+      }
+    }
+  ]
+  name "solid(4)"
+  boundingObject Box {
+    size 0.3 0.2 0.1
+  }
+}
+Solid {
+  translation 0.07 -0.14 0.05
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0 0.4
+        metalness 0
+      }
+      geometry Box {
+        size 0.2 0.2 0.1
+      }
+    }
+  ]
+  name "solid(5)"
+  boundingObject Box {
+    size 0.2 0.2 0.1
+  }
+}
