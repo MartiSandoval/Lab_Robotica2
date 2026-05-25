@@ -3,8 +3,11 @@ import csv
 
 SCENARIO_NAME = "complejo"  # Cambiar a "simple" o "complejo"
 
+#puede ser "CRUDO", "FILTRADO" o "KALMAN"
+MODO_NAVEGACION = "KALMAN"
+
 iteracion = 0
-MAX_ITERACIONES = 1000
+MAX_ITERACIONES = 5000 
 
 robot = Robot()
 TIME_STEP = int(robot.getBasicTimeStep())
@@ -54,12 +57,14 @@ filtro_simple_val = 0.05
 historial_crudo = []
 historial_filtrado = []
 historial_kalman = []
+historial_avance = []
 
 T_s_segundos = TIME_STEP / 1000.0
 f_s = 1.0 / T_s_segundos
 
 print(f"Controlador iniciado. Ts = {TIME_STEP} ms")
 print(f"Frecuencia de muestreo (fs) = {f_s:.2f} Hz")
+print(f"Modo de navegación activo: {MODO_NAVEGACION}")
 
 # Parámetros de navegación
 SAFE_DISTANCE = 0.045
@@ -67,9 +72,13 @@ OBSTACLE_RAW_THRESHOLD = 200
 BACKUP_STEPS = 15
 MIN_TURN_STEPS = 20       # giro mínimo
 MAX_TURN_STEPS = 120      # cap por si nunca se libera
-ESCAPE_TURN_STEPS = 130   # giro forzado cuando está atascado VERIFICAR FUNCIONAMIENTO
-STUCK_WINDOW = 150        # ventana de iteraciones para detectar atascado
-STUCK_THRESHOLD = 4       # más de N giros en la ventana significa que se encuentra atascado el robot
+ESCAPE_TURN_STEPS = 90   # giro forzado cuando está atascado (ajustar si gira más o menos de 180 grados)
+
+# Parámetros Anti-Atasco
+STUCK_WINDOW = 600             # ventana de memoria para detectar bucles infinitos
+STUCK_THRESHOLD = 4            # si hace N giros en la ventana, está atrapado en un bucle
+TIEMPO_MAXIMO_ATASCADO = 150   # iteraciones máximas permitidas sin lograr avanzar
+tiempo_sin_avanzar = 0
 
 # Máquina de estados
 STATE_ADVANCING = 0
@@ -109,9 +118,11 @@ while robot.step(TIME_STEP) != -1:
 
     dist_fr = 0.05 * (1.0 - (v_fr / 4095.0))
     dist_fl = 0.05 * (1.0 - (v_fl / 4095.0))
-    z_k = min(dist_fr, dist_fl)
-
-    obstacle_raw = max(v_fr, v_fl, v_dr, v_dl) > OBSTACLE_RAW_THRESHOLD
+    # Expandir la visión a las diagonales para no estrellarse en las esquinas
+    dist_dr = 0.05 * (1.0 - (v_dr / 4095.0))
+    dist_dl = 0.05 * (1.0 - (v_dl / 4095.0))
+    
+    z_k = min(dist_fr, dist_fl, dist_dr, dist_dl)
 
     # Filtro EMA
     filtro_simple_val = alpha_ema * z_k + (1 - alpha_ema) * filtro_simple_val
@@ -127,24 +138,46 @@ while robot.step(TIME_STEP) != -1:
     historial_crudo.append(z_k)
     historial_filtrado.append(filtro_simple_val)
     historial_kalman.append(d_est)
+    historial_avance.append(avance_lineal)
 
-    obstacle_detected = (d_est <= SAFE_DISTANCE) or obstacle_raw
+    # Lógica de detección basada en el modo que se selecciono
+    if MODO_NAVEGACION == "CRUDO":
+        obstacle_detected = z_k <= SAFE_DISTANCE
+    elif MODO_NAVEGACION == "FILTRADO":
+        obstacle_detected = filtro_simple_val <= SAFE_DISTANCE
+    elif MODO_NAVEGACION == "KALMAN":
+        obstacle_detected = d_est <= SAFE_DISTANCE
+    else:
+        raise ValueError(f"MODO_NAVEGACION inválido: '{MODO_NAVEGACION}'. Debe ser 'CRUDO', 'FILTRADO' o 'KALMAN'.")
+
+    # frustación del robot
+    if nav_state == STATE_ADVANCING and not obstacle_detected:
+        tiempo_sin_avanzar = 0  # Libre de obstáculos
+    else:
+        tiempo_sin_avanzar += 1 # Lidiando con problemas
 
     # Máquina de estados
     if nav_state == STATE_ADVANCING:
         if obstacle_detected:
-            # Detectar atascado: muchos giros en poca distancia
+            # 1. Registrar este intento de giro
             turn_history.append(iteracion)
             turn_history = [t for t in turn_history if iteracion - t < STUCK_WINDOW]
-            stuck = len(turn_history) > STUCK_THRESHOLD
+
+            # 2. Evaluar trampas
+            bucle_infinito = len(turn_history) >= STUCK_THRESHOLD
+            atascado_tiempo = tiempo_sin_avanzar > TIEMPO_MAXIMO_ATASCADO
+
+            stuck = bucle_infinito or atascado_tiempo
 
             if stuck:
-                # Escape: giro forzado 180 grados, dirección opuesta a la última
+                # Escape: giro forzado de 180 grados
+                motivo = "BUCLE" if bucle_infinito else "TIEMPO"
+                print(f">>> [It {iteracion}] ¡Atascado por {motivo}! Forzando escape 180°")
                 is_turning_left = not is_turning_left
                 turn_max_current = ESCAPE_TURN_STEPS
                 is_escape_turn = True
                 turn_history = []
-                print(f">>> [It {iteracion}] Atascado detectado → giro de escape 180°")
+                tiempo_sin_avanzar = 0 
             else:
                 peso_derecho = v_r + v_dr
                 peso_izquierdo = v_l + v_dl
@@ -179,7 +212,14 @@ while robot.step(TIME_STEP) != -1:
         turn_steps_done += 1
         min_done = turn_steps_done >= MIN_TURN_STEPS
         max_reached = turn_steps_done >= turn_max_current
-        front_clear = (not obstacle_raw) and (d_est > SAFE_DISTANCE)
+        
+        # Validar que el frente esté libre según la señal seleccionada
+        if MODO_NAVEGACION == "CRUDO":
+            front_clear = z_k > SAFE_DISTANCE
+        elif MODO_NAVEGACION == "FILTRADO":
+            front_clear = filtro_simple_val > SAFE_DISTANCE
+        else:  # KALMAN
+            front_clear = d_est > SAFE_DISTANCE
 
         # En giro de escape: completar todos los pasos sin salida anticipada
         if is_escape_turn:
@@ -191,6 +231,8 @@ while robot.step(TIME_STEP) != -1:
             nav_state = STATE_ADVANCING
             left_speed = ADVANCE_SPEED
             right_speed = ADVANCE_SPEED
+            tiempo_sin_avanzar = 0  # Resetear frustración al terminar cualquier maniobra
+            is_escape_turn = False
         else:
             if is_turning_left:
                 left_speed = -TURN_SPEED
@@ -203,13 +245,25 @@ while robot.step(TIME_STEP) != -1:
     right_motor.setVelocity(right_speed)
     iteracion += 1
 
-    if iteracion == MAX_ITERACIONES:
-        with open(f'datos_sensores_{SCENARIO_NAME}.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['Z_Crudo', 'Z_Filtrado', 'D_Kalman'])
-            for i in range(len(historial_crudo)):
-                writer.writerow([historial_crudo[i], historial_filtrado[i], historial_kalman[i]])
-        print(f"¡Datos guardados exitosamente en datos_sensores_{SCENARIO_NAME}.csv!")
+    # para no saturar la consola, se imprime cada 50
+    if iteracion % 50 == 0:
+        estado_str = ["AVANZA", "RETROCEDE", "GIRA"][nav_state]
+        print(f"It:{iteracion} | Estado:{estado_str} | Zk:{z_k:.4f} | Filtr:{filtro_simple_val:.4f} | Kal:{d_est:.4f} | MODO:{MODO_NAVEGACION}")
 
-    estado_str = ["AVANZA", "RETROCEDE", "GIRA"][nav_state]
-    print(f"It:{iteracion} | Zk:{z_k:.4f} | Kalman:{d_est:.4f} | Estado:{estado_str}")
+    if iteracion >= MAX_ITERACIONES:
+        left_motor.setVelocity(0.0)
+        right_motor.setVelocity(0.0)
+        break
+
+
+def _guardar_csv():
+    archivo_csv = f'datos_sensores_{SCENARIO_NAME}_{MODO_NAVEGACION}.csv'
+    with open(archivo_csv, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Z_Crudo', 'Z_Filtrado', 'D_Kalman', 'Avance_Lineal'])
+        for i in range(len(historial_crudo)):
+            writer.writerow([historial_crudo[i], historial_filtrado[i], historial_kalman[i], historial_avance[i]])
+    print(f"¡Datos guardados exitosamente en {archivo_csv}! ({len(historial_crudo)} muestras)")
+
+
+_guardar_csv()

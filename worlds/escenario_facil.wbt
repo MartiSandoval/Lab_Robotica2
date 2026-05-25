@@ -21,7 +21,7 @@ RectangleArena {
 E-puck {
   translation 0.0610772 -0.4 -0.00176818
   rotation 0.0001490850383430764 -0.005046111297805824 0.999987257186021 1.5638496938995747
-  controller "my_controller"
+  controller "controlador_lab2"
 }
 Solid {
   translation 0.23 0.41 0.05
